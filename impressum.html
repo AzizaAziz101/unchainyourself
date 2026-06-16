@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Impressum</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0a0a0a; --surface: #111111; --border: rgba(255,255,255,0.09);
+      --text: #e4e4e4; --muted: #5a5a5a; --px: 28px;
+    }
+    @media (max-width: 600px) { :root { --px: 14px; } }
+    html, body {
+      min-height: 100%; font-family: 'Inter', sans-serif;
+      background: var(--bg); color: var(--text);
+      -webkit-font-smoothing: antialiased;
+    }
+    .page-header {
+      display: flex; align-items: center; gap: 10px;
+      padding: 20px var(--px); border-bottom: 1px solid var(--border);
+    }
+    .logo {
+      width: 26px; height: 26px; border-radius: 5px;
+      background: var(--text); display: flex; align-items: center;
+      justify-content: center; font-size: 10px; font-weight: 700; color: var(--bg);
+      flex-shrink: 0;
+    }
+    .page-header-title { font-size: 13px; font-weight: 500; }
+    .back-btn {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 12px; font-weight: 500; color: var(--muted);
+      border: 1px solid var(--border); border-radius: 6px;
+      padding: 5px 9px; background: none; cursor: pointer;
+      font-family: 'Inter', sans-serif; text-decoration: none;
+      transition: color .15s, border-color .15s; margin-left: auto;
+    }
+    .back-btn:hover { color: var(--text); border-color: rgba(255,255,255,0.16); }
+    main {
+      max-width: 680px; margin: 0 auto;
+      padding: 48px var(--px) 80px;
+    }
+    h1 { font-size: 22px; font-weight: 600; letter-spacing: -.03em; margin-bottom: 32px; }
+    h2 {
+      font-size: 11px; font-weight: 600; letter-spacing: .1em;
+      text-transform: uppercase; color: var(--muted);
+      margin: 32px 0 10px;
+    }
+    h2:first-of-type { margin-top: 0; }
+    p { font-size: 14px; line-height: 1.75; color: #b0b0b0; }
+    a { color: var(--text); text-underline-offset: 3px; }
+    .block {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 20px 22px; margin-bottom: 8px;
+    }
+    .block p + p { margin-top: 4px; }
+  </style>
+</head>
+<body>
+  <header class="page-header">
+    <div class="logo">KI</div>
+    <span class="page-header-title">Problemlösung</span>
+    <a class="back-btn" href="/">
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      Zurück
+    </a>
+  </header>
+
+  <main>
+    <h1>Impressum</h1>
+
+    <h2>Angaben gemäß § 5 TMG</h2>
+    <div class="block">
+      <p>Antonio Hoeft</p>
+      <p>Gormannstr. 19A</p>
+      <p>10119 Berlin</p>
+    </div>
+
+    <h2>Kontakt</h2>
+    <div class="block">
+      <p>Telefon: <a href="tel:+4901625426438">01625426438</a></p>
+      <p>E-Mail: <a href="mailto:tonihoeftofficial@gmail.com">tonihoeftofficial@gmail.com</a></p>
+    </div>
+
+    <h2>Hinweis zur EU-Streitschlichtung</h2>
+    <div class="block">
+      <p>Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit: <a href="https://ec.europa.eu/consumers/odr/" target="_blank" rel="noopener">https://ec.europa.eu/consumers/odr/</a>. Zur Teilnahme an einem Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle sind wir nicht verpflichtet und nicht bereit.</p>
+    </div>
+
+    <h2>Haftung für Inhalte</h2>
+    <div class="block">
+      <p>Als Diensteanbieter sind wir gemäß § 7 Abs. 1 TMG für eigene Inhalte auf diesen Seiten nach den allgemeinen Gesetzen verantwortlich. Nach §§ 8 bis 10 TMG sind wir als Diensteanbieter jedoch nicht verpflichtet, übermittelte oder gespeicherte fremde Informationen zu überwachen. Die durch KI-Agenten generierten Inhalte stellen keine Rechts-, Finanz- oder sonstige Fachberatung dar.</p>
+    </div>
+  </main>
+</body>
+</html>

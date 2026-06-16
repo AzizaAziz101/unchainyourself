@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Problemlösung — KI-Diskussion</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0a0a0a;
+      --surface:   #111111;
+      --surface-h: #161616;
+      --border:    rgba(255,255,255,0.09);
+      --border-h:  rgba(255,255,255,0.16);
+      --text:      #e4e4e4;
+      --muted:     #5a5a5a;
+      --muted-2:   #383838;
+      --col-an:    #3b82f6;
+      --col-sd:    #10b981;
+      --col-pv:    #d97706;
+      --px: 28px;
+    }
+    @media (max-width: 600px) { :root { --px: 14px; } }
+
+    html, body {
+      height: 100%;
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+      overflow: hidden;
+    }
+
+    .hidden { display: none !important; }
+
+    /* ─────────────────────────────
+       INPUT VIEW
+    ───────────────────────────── */
+    #viewInput {
+      height: 100%;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+
+    .page-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 20px var(--px);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .logo {
+      width: 26px; height: 26px; border-radius: 5px; flex-shrink: 0;
+      background: var(--text);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 700; color: var(--bg);
+    }
+    .page-header-title { font-size: 13px; font-weight: 500; }
+
+    .input-main {
+      flex: 1;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 48px var(--px);
+    }
+
+    .input-wrap {
+      width: 100%; max-width: 620px;
+      display: flex; flex-direction: column;
+    }
+
+    .input-eyebrow {
+      font-size: 11px; font-weight: 500; letter-spacing: .1em;
+      text-transform: uppercase; color: var(--muted); margin-bottom: 12px;
+    }
+
+    .input-h1 {
+      font-size: clamp(22px, 4vw, 28px);
+      font-weight: 600; letter-spacing: -.03em;
+      line-height: 1.28; margin-bottom: 10px;
+    }
+
+    .input-sub {
+      font-size: 14px; color: var(--muted); line-height: 1.65;
+      margin-bottom: 28px;
+    }
+
+    .problem-area {
+      width: 100%; min-height: 120px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 14px 16px;
+      color: var(--text); font-family: 'Inter', sans-serif;
+      font-size: 16px; line-height: 1.65; resize: vertical;
+      outline: none; transition: border-color .2s;
+    }
+    .problem-area::placeholder { color: var(--muted-2); }
+    .problem-area:focus { border-color: var(--border-h); }
+
+    .start-btn {
+      margin-top: 10px; width: 100%; padding: 13px 24px;
+      background: var(--text); color: var(--bg); border: none;
+      border-radius: 8px; font-family: 'Inter', sans-serif;
+      font-size: 14px; font-weight: 600; cursor: pointer;
+      letter-spacing: -.01em; transition: opacity .15s, transform .1s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .start-btn:hover { opacity: .88; }
+    .start-btn:active { transform: scale(.98); }
+    .start-btn:disabled { opacity: .35; cursor: not-allowed; }
+
+    .agents-preview {
+      display: flex; align-items: center; gap: 12px;
+      margin-top: 24px; flex-wrap: wrap;
+    }
+    .agent-pre { display: flex; align-items: center; gap: 6px; }
+    .agent-pip {
+      width: 20px; height: 20px; border-radius: 4px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 8px; font-weight: 700; color: #fff;
+    }
+    .agent-pre-name { font-size: 12px; color: var(--muted); }
+    .agents-dot { font-size: 10px; color: var(--muted-2); }
+
+    /* ─────────────────────────────
+       DISCUSSION VIEW
+    ───────────────────────────── */
+    #viewDiscussion {
+      height: 100%;
+      height: 100dvh;
+      display: flex; flex-direction: column;
+    }
+
+    .disc-header {
+      display: flex; align-items: center; gap: 10px;
+      padding: 0 var(--px); height: 52px;
+      border-bottom: 1px solid var(--border); flex-shrink: 0;
+      min-width: 0;
+    }
+
+    .back-btn {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 12px; font-weight: 500; color: var(--muted);
+      border: 1px solid var(--border); border-radius: 6px;
+      padding: 5px 9px; background: none; cursor: pointer;
+      font-family: 'Inter', sans-serif; white-space: nowrap;
+      transition: color .15s, border-color .15s; flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .back-btn:hover { color: var(--text); border-color: var(--border-h); }
+
+    .disc-problem-label {
+      flex: 1; min-width: 0;
+      font-size: 12px; color: var(--muted);
+      overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+    }
+
+    .round-badge {
+      flex-shrink: 0; font-size: 10px; font-weight: 500;
+      color: var(--muted); background: var(--surface);
+      border: 1px solid var(--border); border-radius: 4px;
+      padding: 3px 8px; letter-spacing: .04em; white-space: nowrap;
+    }
+
+    /* ─── Messages ─── */
+    .disc-messages {
+      flex: 1; overflow-y: auto; overflow-x: hidden;
+      padding: 24px var(--px);
+      display: flex; flex-direction: column; gap: 0;
+      scrollbar-width: thin; scrollbar-color: #1a1a1a transparent;
+      -webkit-overflow-scrolling: touch;
+    }
+    .disc-messages::-webkit-scrollbar { width: 3px; }
+    .disc-messages::-webkit-scrollbar-thumb { background: #1a1a1a; border-radius: 4px; }
+
+    /* ─── Round separator ─── */
+    .round-sep {
+      display: flex; align-items: center; gap: 10px;
+      margin: 20px 0 18px; flex-shrink: 0;
+    }
+    .round-sep:first-child { margin-top: 0; }
+    .sep-line { flex: 1; height: 1px; background: var(--border); }
+    .sep-label {
+      font-size: 10px; font-weight: 600; letter-spacing: .1em;
+      text-transform: uppercase; color: var(--muted); white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .synth-sep .sep-line  { background: rgba(255,255,255,0.14); }
+    .synth-sep .sep-label { color: #888; }
+    .followup-sep .sep-line { background: rgba(255,255,255,0.07); }
+    .followup-sep .sep-label { color: var(--muted); font-weight: 500; }
+
+    /* ─── Agent message ─── */
+    .agent-wrap {
+      display: flex; flex-direction: column;
+      margin-bottom: 18px;
+      animation: fUp .22s ease;
+    }
+    @keyframes fUp { from{opacity:0;transform:translateY(5px)} to{opacity:1;transform:translateY(0)} }
+
+    .agent-header {
+      display: flex; align-items: center; gap: 6px;
+      margin-bottom: 6px; padding-left: 2px; flex-wrap: wrap;
+      min-width: 0;
+    }
+    .agent-bdg {
+      width: 22px; height: 22px; border-radius: 4px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 8px; font-weight: 700; color: #fff;
+    }
+    .agent-nm  { font-size: 12px; font-weight: 600; flex-shrink: 0; }
+    .agent-sub { font-size: 11px; color: var(--muted); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    .agent-bubble {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 2px solid var(--ac);
+      border-radius: 8px; border-bottom-left-radius: 3px;
+      padding: 11px 14px;
+      font-size: 14px; line-height: 1.78;
+      word-break: break-word; overflow-wrap: break-word;
+    }
+    .synth-bubble {
+      background: #141414;
+      border-color: rgba(255,255,255,0.13);
+    }
+
+    /* ─── User message ─── */
+    .user-wrap {
+      display: flex; flex-direction: column;
+      align-items: flex-end;
+      margin-bottom: 18px;
+      animation: fUp .22s ease;
+    }
+    .user-lbl {
+      font-size: 11px; font-weight: 600; letter-spacing: .06em;
+      text-transform: uppercase; color: var(--muted);
+      margin-bottom: 6px; padding-right: 2px;
+    }
+    .user-bubble {
+      background: #181818;
+      border: 1px solid var(--border);
+      border-right: 2px solid rgba(255,255,255,0.14);
+      border-radius: 8px; border-bottom-right-radius: 3px;
+      padding: 11px 14px;
+      font-size: 14px; line-height: 1.78;
+      max-width: 80%;
+      word-break: break-word; overflow-wrap: break-word;
+    }
+
+    /* ─── Typing ─── */
+    .typing-wrap { display: flex; flex-direction: column; margin-bottom: 18px; }
+    .typing-dots {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 11px 13px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-left: 2px solid var(--ac);
+      border-radius: 8px; border-bottom-left-radius: 3px;
+    }
+    .typing-dots span {
+      width: 5px; height: 5px; border-radius: 50%;
+      background: var(--muted); animation: td 1.1s infinite;
+    }
+    .typing-dots span:nth-child(2) { animation-delay: .18s; }
+    .typing-dots span:nth-child(3) { animation-delay: .36s; }
+    @keyframes td { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-5px)} }
+
+    /* ─── Done note ─── */
+    .done-note {
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      padding: 14px 0 4px;
+      font-size: 12px; color: var(--muted);
+    }
+    .done-check {
+      width: 14px; height: 14px; border-radius: 50%;
+      background: #16a34a; display: flex; align-items: center;
+      justify-content: center; font-size: 8px; color: #fff; flex-shrink: 0;
+    }
+
+    /* ─── Follow-up input ─── */
+    .followup-area {
+      padding: 12px var(--px) 16px;
+      border-top: 1px solid var(--border);
+      flex-shrink: 0;
+      background: var(--bg);
+    }
+    .followup-row {
+      display: flex; gap: 8px; align-items: flex-end;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 10px 12px;
+      transition: border-color .2s;
+    }
+    .followup-row:focus-within { border-color: var(--border-h); }
+
+    .followup-ta {
+      flex: 1; min-width: 0;
+      background: none; border: none; outline: none;
+      color: var(--text); font-family: 'Inter', sans-serif;
+      font-size: 16px; resize: none;
+      min-height: 22px; max-height: 120px; line-height: 1.5;
+    }
+    .followup-ta::placeholder { color: var(--muted-2); }
+
+    .send-btn {
+      width: 32px; height: 32px; flex-shrink: 0; border-radius: 7px;
+      background: var(--text); border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: opacity .15s, transform .1s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .send-btn:hover { opacity: .85; }
+    .send-btn:active { transform: scale(.93); }
+    .send-btn:disabled { opacity: .3; cursor: not-allowed; }
+    .send-btn svg { fill: var(--bg); }
+
+    .input-hint {
+      font-size: 11px; color: var(--muted-2);
+      margin-top: 7px; text-align: center;
+    }
+    @media (max-width: 600px) { .input-hint { display: none; } }
+
+    /* ─── Code in bubbles ─── */
+    .agent-bubble pre, .user-bubble pre {
+      background: rgba(0,0,0,.4); border: 1px solid var(--border);
+      border-radius: 6px; padding: 10px 12px; margin: 8px 0;
+      overflow-x: auto; font-size: 12px;
+    }
+    .agent-bubble pre code, .user-bubble pre code {
+      font-family: 'JetBrains Mono','Fira Code',monospace;
+      font-size: 12px; line-height: 1.6;
+    }
+    .agent-bubble code, .user-bubble code {
+      font-family: 'JetBrains Mono','Fira Code',monospace; font-size: 12px;
+      background: rgba(255,255,255,.06); padding: 1px 5px; border-radius: 4px;
+    }
+    .agent-bubble pre code, .user-bubble pre code { background: none; padding: 0; }
+    .agent-bubble strong, .user-bubble strong { font-weight: 600; color: #ccc; }
+
+    /* ─── Error ─── */
+    .error-block {
+      padding: 14px 16px; margin: 8px 0;
+      background: #130a0a; border: 1px solid #2e1515;
+      border-radius: 8px; font-size: 13px; color: #f87171;
+    }
+    .error-block small { display: block; margin-top: 6px; color: var(--muted); font-size: 12px; }
+    .text-btn {
+      margin-top: 10px; padding: 8px 16px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 6px; color: var(--text); cursor: pointer;
+      font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 500;
+      transition: border-color .15s;
+    }
+    .text-btn:hover { border-color: var(--border-h); }
+
+    @media (max-width: 400px) {
+      .agent-sub { display: none; }
+      .disc-problem-label { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════
+     INPUT VIEW
+══════════════════════════════════ -->
+<div id="viewInput">
+  <header class="page-header">
+    <div class="logo">KI</div>
+    <span class="page-header-title">Problemlösung</span>
+  </header>
+  <div class="input-main">
+    <div class="input-wrap">
+      <p class="input-eyebrow">Multi-Agenten-Diskussion</p>
+      <h1 class="input-h1">Was möchtest du lösen?</h1>
+      <p class="input-sub">Drei KI-Agenten analysieren dein Anliegen aus verschiedenen Perspektiven, diskutieren es und erarbeiten gemeinsam eine Lösung. Danach kannst du mit ihnen weiter chatten.</p>
+      <textarea
+        id="problemInput"
+        class="problem-area"
+        placeholder="Beschreibe dein Problem, dein Ziel oder deine Herausforderung…"
+        onkeydown="handleInputKey(event)"
+      ></textarea>
+      <button class="start-btn" id="startBtn" onclick="startDiscussion()">Diskussion starten →</button>
+      <div class="agents-preview">
+        <div class="agent-pre">
+          <div class="agent-pip" style="background:var(--col-an)">AN</div>
+          <span class="agent-pre-name">Analyst</span>
+        </div>
+        <span class="agents-dot">·</span>
+        <div class="agent-pre">
+          <div class="agent-pip" style="background:var(--col-sd)">SD</div>
+          <span class="agent-pre-name">Systemdenker</span>
+        </div>
+        <span class="agents-dot">·</span>
+        <div class="agent-pre">
+          <div class="agent-pip" style="background:var(--col-pv)">PV</div>
+          <span class="agent-pre-name">Provokateur</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     DISCUSSION VIEW
+══════════════════════════════════ -->
+<div id="viewDiscussion" class="hidden">
+  <header class="disc-header">
+    <button class="back-btn" onclick="resetToInput()">
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      Neu
+    </button>
+    <span class="disc-problem-label" id="problemLabel"></span>
+    <span class="round-badge" id="roundBadge">Runde 1 / 4</span>
+  </header>
+
+  <div class="disc-messages" id="discMessages"></div>
+
+  <div class="followup-area hidden" id="followupArea">
+    <div class="followup-row">
+      <textarea
+        id="followupInput"
+        class="followup-ta"
+        placeholder="Nachfrage stellen…"
+        rows="1"
+        onkeydown="handleFollowupKey(event)"
+        oninput="grow(this)"
+      ></textarea>
+      <button class="send-btn" id="sendBtn" onclick="sendFollowup()">
+        <svg width="13" height="13" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+      </button>
+    </div>
+    <p class="input-hint">Enter senden &nbsp;·&nbsp; Shift+Enter Zeilenumbruch</p>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════
+   AGENTS
+══════════════════════════════════════ */
+const AGENTS = [
+  {
+    id: 'analyst', badge: 'AN', name: 'Analyst',
+    sub: 'Systemanalytik · Logik',
+    color: '#3b82f6',
+    system: `Du bist ANALYST in einer KI-Problemlösungs-Diskussion mit SYSTEMDENKER (ganzheitlich) und PROVOKATEUR (kritisch).
+
+Hintergrund: Systemanalytik, Kausalanalyse, strukturiertes Denken, klare Priorisierung.
+
+Je nach Runde:
+— Erstanalyse: Zerlege das Problem in Kernkomponenten, benenne Kausalitäten.
+— Vertiefung: Reagiere präzise auf Punkte der anderen. Schärfe oder widerlege.
+— Konvergenz: Synthetisiere die stärksten logischen Einsichten.
+— Synthese: Formuliere konkrete, priorisierte Handlungsschritte.
+— Nachfrage: Beantworte die Frage des Nutzers direkt aus deiner Perspektive.
+
+Stil: Präzise. Direkt. Maximal 120 Wörter. Deutsch. Beginne sofort mit dem Inhalt.`
+  },
+  {
+    id: 'systemdenker', badge: 'SD', name: 'Systemdenker',
+    sub: 'Emergenz · Musterdenken',
+    color: '#10b981',
+    system: `Du bist SYSTEMDENKER in einer KI-Problemlösungs-Diskussion mit ANALYST (logisch) und PROVOKATEUR (kritisch).
+
+Hintergrund: Systemisches Denken, Emergenz, Feedback-Loops, Wechselwirkungen, Mustererkennung.
+
+Je nach Runde:
+— Erstanalyse: Erkenne systemische Muster, Feedback-Loops, übergeordnete Zusammenhänge.
+— Vertiefung: Verbinde Punkte von Analyst und Provokateur auf höherer Ebene.
+— Konvergenz: Zeige wie sich Perspektiven zu einem Systembild zusammenfügen.
+— Synthese: Empfehlungen mit Blick auf systemische Risiken und unbeabsichtigte Effekte.
+— Nachfrage: Beantworte die Frage des Nutzers aus systemischer Perspektive.
+
+Stil: Holistisch. Vernetzend. Maximal 120 Wörter. Deutsch. Direkt starten.`
+  },
+  {
+    id: 'provokateur', badge: 'PV', name: 'Provokateur',
+    sub: 'First Principles · Kritik',
+    color: '#d97706',
+    system: `Du bist PROVOKATEUR in einer KI-Problemlösungs-Diskussion mit ANALYST (logisch) und SYSTEMDENKER (holistisch).
+
+Hintergrund: First-Principles-Denken, blinde Flecken aufdecken, Grundannahmen hinterfragen.
+
+Je nach Runde:
+— Erstanalyse: Identifiziere die wichtigste ungeprüfte Grundannahme im Problem.
+— Vertiefung: Benenne blinde Flecken in den Beiträgen der anderen.
+— Konvergenz: Prüfe ob die Lösung das Kernproblem oder nur Symptome adressiert.
+— Synthese: Benenne die eine Voraussetzung, ohne die die Lösung scheitert.
+— Nachfrage: Beantworte die Frage des Nutzers mit einer provokativ-konstruktiven Gegenperspektive.
+
+Stil: Direkt. Konstruktiv. Maximal 120 Wörter. Deutsch. Zum Punkt.`
+  }
+];
+
+const ROUNDS = [
+  { label: 'Erstanalyse', prompt: 'Analysiere das Problem aus deiner Perspektive. Präzise.' },
+  { label: 'Vertiefung',  prompt: 'Baue auf den Beiträgen der anderen auf. Reagiere direkt. Vertiefe, ergänze, widersprich wo nötig.' },
+  { label: 'Konvergenz',  prompt: 'Identifiziere die zwei, drei stärksten Erkenntnisse. Wo zeigt sich Einigkeit, was bleibt offen?' },
+  { label: 'Synthese',    prompt: 'FINALE RUNDE. Formuliere deinen konkreten, umsetzbaren Beitrag zur Gesamtlösung. Klar und prägnant.' },
+];
+
+/* ══════════════════════════════════════
+   STATE
+══════════════════════════════════════ */
+let problem = '';
+let history  = [];   // { type: 'agent'|'user', agentId?, agentName?, content }
+let isRunning = false;
+
+/* ══════════════════════════════════════
+   NAVIGATION
+══════════════════════════════════════ */
+function handleInputKey(e) {
+  if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); startDiscussion(); }
+}
+
+function resetToInput() {
+  if (isRunning) return;
+  g('viewDiscussion').classList.add('hidden');
+  g('viewInput').classList.remove('hidden');
+  g('discMessages').innerHTML = '';
+  g('problemInput').value = '';
+  g('followupArea').classList.add('hidden');
+  history = [];
+  problem = '';
+}
+
+/* ══════════════════════════════════════
+   START DISCUSSION
+══════════════════════════════════════ */
+async function startDiscussion() {
+  problem = g('problemInput').value.trim();
+  if (!problem || isRunning) return;
+  isRunning = true;
+  g('startBtn').disabled = true;
+
+  g('viewInput').classList.add('hidden');
+  g('viewDiscussion').classList.remove('hidden');
+  g('discMessages').innerHTML = '';
+  g('followupArea').classList.add('hidden');
+
+  const preview = problem.length > 68 ? problem.slice(0, 65) + '…' : problem;
+  g('problemLabel').textContent = preview;
+  setRoundBadge('Runde 1 / 4');
+
+  try {
+    for (let ri = 0; ri < ROUNDS.length; ri++) {
+      setRoundBadge(`Runde ${ri + 1} / ${ROUNDS.length}`);
+      appendSep(ri + 1, ROUNDS[ri].label, ri === ROUNDS.length - 1);
+      for (const agent of AGENTS) {
+        await runAgent(agent, buildAgentPrompt(ROUNDS[ri].prompt), ri === ROUNDS.length - 1);
+      }
+    }
+    appendDoneNote();
+    showFollowup();
+  } catch (err) {
+    appendError(err.message);
+  }
+
+  isRunning = false;
+  g('startBtn').disabled = false;
+}
+
+/* ══════════════════════════════════════
+   FOLLOW-UP CHAT
+══════════════════════════════════════ */
+function handleFollowupKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendFollowup(); }
+}
+
+function grow(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+async function sendFollowup() {
+  if (isRunning) return;
+  const ta = g('followupInput');
+  const text = ta.value.trim();
+  if (!text) return;
+
+  ta.value = '';
+  ta.style.height = 'auto';
+  g('sendBtn').disabled = true;
+  isRunning = true;
+
+  history.push({ type: 'user', content: text });
+  appendUserBubble(text);
+
+  const followupSepNum = history.filter(m => m.type === 'user').length;
+  appendSep(followupSepNum, 'Nachfrage', false, true);
+
+  const followupPrompt = `Der Nutzer hat folgende Nachfrage gestellt: "${text}"\n\nReagiere direkt und hilfreich darauf aus deiner spezifischen Perspektive. Beziehe dich auf die Diskussion. Maximal 130 Wörter.`;
+
+  try {
+    for (const agent of AGENTS) {
+      await runAgent(agent, buildAgentPrompt(followupPrompt), false);
+    }
+  } catch (err) {
+    appendError(err.message);
+  }
+
+  isRunning = false;
+  g('sendBtn').disabled = false;
+  ta.focus();
+}
+
+/* ══════════════════════════════════════
+   AGENT RUNNER
+══════════════════════════════════════ */
+function buildAgentPrompt(roundPrompt) {
+  if (history.length === 0) {
+    return `Problem/Ziel: "${problem}"\n\nAufgabe: ${roundPrompt}`;
+  }
+  const histText = history.map(m =>
+    m.type === 'user'
+      ? `[NUTZER]: ${m.content}`
+      : `[${m.agentName.toUpperCase()}]: ${m.content}`
+  ).join('\n\n');
+  return `Problem/Ziel: "${problem}"\n\nDiskussion bisher:\n\n${histText}\n\n---\n\nAufgabe: ${roundPrompt}`;
+}
+
+async function runAgent(agent, userContent, isSynth) {
+  const typingEl = appendTyping(agent);
+
+  const res = await fetch('/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      messages: [{ role: 'user', content: userContent }],
+      system: agent.system,
+      maxTokens: isSynth ? 700 : 450
+    })
+  });
+
+  typingEl.remove();
+  if (!res.ok) throw new Error(`API Fehler ${res.status}: ${await res.text()}`);
+
+  const bubble = appendAgentBubble(agent, isSynth);
+  let full = '';
+
+  const reader = res.body.getReader();
+  const dec = new TextDecoder();
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    for (const line of dec.decode(value).split('\n')) {
+      if (!line.startsWith('data: ')) continue;
+      const raw = line.slice(6).trim();
+      if (raw === '[DONE]') continue;
+      try {
+        const obj = JSON.parse(raw);
+        const text = obj.choices?.[0]?.delta?.content;
+        if (text) {
+          full += text;
+          bubble.innerHTML = fmt(full);
+          scroll();
+        }
+      } catch (_) {}
+    }
+  }
+
+  if (full) history.push({ type: 'agent', agentId: agent.id, agentName: agent.name, content: full });
+}
+
+/* ══════════════════════════════════════
+   DOM BUILDERS
+══════════════════════════════════════ */
+function appendSep(num, label, isSynth, isFollowup = false) {
+  const div = document.createElement('div');
+  div.className = `round-sep${isSynth ? ' synth-sep' : ''}${isFollowup ? ' followup-sep' : ''}`;
+  const displayLabel = isSynth ? 'Synthese' : (isFollowup ? `Nachfrage ${num}` : `Runde ${num} — ${label}`);
+  div.innerHTML = `<div class="sep-line"></div><span class="sep-label">${displayLabel}</span><div class="sep-line"></div>`;
+  g('discMessages').appendChild(div);
+  scroll();
+}
+
+function appendTyping(agent) {
+  const wrap = document.createElement('div');
+  wrap.className = 'typing-wrap';
+
+  const hdr = document.createElement('div');
+  hdr.className = 'agent-header';
+  hdr.innerHTML = `<div class="agent-bdg" style="background:${agent.color}">${agent.badge}</div><span class="agent-nm" style="color:${agent.color}">${agent.name}</span>`;
+
+  const dots = document.createElement('div');
+  dots.className = 'typing-dots';
+  dots.style.setProperty('--ac', agent.color);
+  dots.innerHTML = '<span></span><span></span><span></span>';
+
+  wrap.appendChild(hdr);
+  wrap.appendChild(dots);
+  g('discMessages').appendChild(wrap);
+  scroll();
+  return wrap;
+}
+
+function appendAgentBubble(agent, isSynth) {
+  const wrap = document.createElement('div');
+  wrap.className = 'agent-wrap';
+
+  const hdr = document.createElement('div');
+  hdr.className = 'agent-header';
+  hdr.innerHTML = `
+    <div class="agent-bdg" style="background:${agent.color}">${agent.badge}</div>
+    <span class="agent-nm" style="color:${agent.color}">${agent.name}</span>
+    <span class="agent-sub">${agent.sub}</span>
+  `;
+
+  const bubble = document.createElement('div');
+  bubble.className = `agent-bubble${isSynth ? ' synth-bubble' : ''}`;
+  bubble.style.setProperty('--ac', agent.color);
+
+  wrap.appendChild(hdr);
+  wrap.appendChild(bubble);
+  g('discMessages').appendChild(wrap);
+  scroll();
+  return bubble;
+}
+
+function appendUserBubble(text) {
+  const wrap = document.createElement('div');
+  wrap.className = 'user-wrap';
+  wrap.innerHTML = `
+    <div class="user-lbl">Du</div>
+    <div class="user-bubble">${fmt(text)}</div>
+  `;
+  g('discMessages').appendChild(wrap);
+  scroll();
+}
+
+function appendDoneNote() {
+  const div = document.createElement('div');
+  div.className = 'done-note';
+  div.innerHTML = `<div class="done-check">✓</div><span>Diskussion abgeschlossen — stelle eine Nachfrage oder starte neu</span>`;
+  g('discMessages').appendChild(div);
+  scroll();
+}
+
+function appendError(msg) {
+  const div = document.createElement('div');
+  div.className = 'error-block';
+  div.innerHTML = `<strong>Fehler:</strong> ${esc(msg)}<small>Stelle sicher, dass AWS_BEARER_TOKEN_BEDROCK in Vercel gesetzt ist.</small>`;
+  g('discMessages').appendChild(div);
+  const btn = document.createElement('button');
+  btn.className = 'text-btn';
+  btn.textContent = '← Zurück';
+  btn.onclick = resetToInput;
+  g('discMessages').appendChild(btn);
+  scroll();
+}
+
+function showFollowup() {
+  g('followupArea').classList.remove('hidden');
+  g('followupInput').focus();
+}
+
+function setRoundBadge(text) { g('roundBadge').textContent = text; }
+function scroll() { const m = g('discMessages'); m.scrollTop = m.scrollHeight; }
+function g(id) { return document.getElementById(id); }
+
+/* ══════════════════════════════════════
+   TEXT FORMAT
+══════════════════════════════════════ */
+function esc(t) { return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function fmt(text) {
+  text = text.replace(/```(\w*)\n([\s\S]*?)```/g,
+    (_, _l, code) => `<pre><code>${esc(code.trim())}</code></pre>`);
+  text = text.replace(/`([^`\n]+)`/g, '<code>$1</code>');
+  text = text.replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>');
+  text = text.replace(/\n/g, '<br>');
+  return text;
+}
+</script>
+</body>
+</html>

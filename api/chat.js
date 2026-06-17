@@ -28,7 +28,7 @@ export default async function handler(req, res) {
         'Authorization': `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: 'openai.gpt-oss-20b-1:0',
+        model: 'eu.anthropic.claude-sonnet-4-5-20250929-v1:0',
         max_tokens: maxTokens || 2048,
         stream: true,
         messages: allMessages,

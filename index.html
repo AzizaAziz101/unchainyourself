@@ -613,7 +613,10 @@ async function sendFollowup() {
   const followupSepNum = history.filter(m => m.type === 'user').length;
   appendSep(followupSepNum, 'Nachfrage', false, true);
 
-  const followupPrompt = `Der Nutzer hat folgende Nachfrage gestellt: "${text}"\n\nReagiere direkt und hilfreich darauf aus deiner spezifischen Perspektive. Beziehe dich auf die Diskussion. Maximal 130 Wörter.`;
+  const followupLang = isEnglish(text)
+    ? '\n\nIMPORTANT: Respond in English only.'
+    : '\n\nWICHTIG: Antworte ausschließlich auf Deutsch. Kein einziges englisches Wort.';
+  const followupPrompt = `Der Nutzer hat folgende Nachfrage gestellt: "${text}"\n\nReagiere direkt und hilfreich darauf aus deiner spezifischen Perspektive. Beziehe dich auf die Diskussion.${followupLang}`;
 
   try {
     for (const agent of AGENTS) {
@@ -631,16 +634,27 @@ async function sendFollowup() {
 /* ══════════════════════════════════════
    AGENT RUNNER
 ══════════════════════════════════════ */
+function isEnglish(text) {
+  const en = /\b(the|is|are|was|were|have|has|what|how|why|when|where|who|this|that|with|from|they|will|would|could|should|can|but|and|for|not|you|your|we|our|it|be|do|if|me|my|by|at|as|an|so|up|or|in|on|of|to|a)\b/gi;
+  return (text.match(en) || []).length >= 4;
+}
+
+function langHint() {
+  return isEnglish(problem)
+    ? '\n\nIMPORTANT: Respond in English only.'
+    : '\n\nWICHTIG: Antworte ausschließlich auf Deutsch. Kein einziges englisches Wort.';
+}
+
 function buildAgentPrompt(roundPrompt) {
   if (history.length === 0) {
-    return `Problem/Ziel: "${problem}"\n\nAufgabe: ${roundPrompt}`;
+    return `Problem/Ziel: "${problem}"\n\nAufgabe: ${roundPrompt}${langHint()}`;
   }
   const histText = history.map(m =>
     m.type === 'user'
       ? `[NUTZER]: ${m.content}`
       : `[${m.agentName.toUpperCase()}]: ${m.content}`
   ).join('\n\n');
-  return `Problem/Ziel: "${problem}"\n\nDiskussion bisher:\n\n${histText}\n\n---\n\nAufgabe: ${roundPrompt}`;
+  return `Problem/Ziel: "${problem}"\n\nDiskussion bisher:\n\n${histText}\n\n---\n\nAufgabe: ${roundPrompt}${langHint()}`;
 }
 
 async function runAgent(agent, userContent, isSynth) {

@@ -14,24 +14,21 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'messages array required' });
   }
 
-  const region = process.env.AWS_REGION || 'eu-central-1';
-  const allMessages = system
-    ? [{ role: 'system', content: system }, ...messages]
-    : messages;
-
   const bedrockRes = await fetch(
-    `https://bedrock-mantle.${region}.api.aws/openai/v1/chat/completions`,
+    'https://bedrock-mantle.eu-central-1.api.aws/anthropic/v1/messages',
     {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${apiKey}`,
+        'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
         model: 'eu.anthropic.claude-sonnet-4-5-20250929-v1:0',
         max_tokens: maxTokens || 2048,
         stream: true,
-        messages: allMessages,
+        system: system || '',
+        messages,
       }),
     }
   );

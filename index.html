@@ -688,9 +688,8 @@ async function runAgent(agent, userContent, isSynth) {
       if (raw === '[DONE]') continue;
       try {
         const obj = JSON.parse(raw);
-        const text = obj.choices?.[0]?.delta?.content;
-        if (text) {
-          full += text;
+        if (obj.type === 'content_block_delta' && obj.delta?.type === 'text_delta') {
+          full += obj.delta.text;
           bubble.innerHTML = fmt(full);
           scroll();
         }

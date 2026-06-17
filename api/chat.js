@@ -27,7 +27,7 @@ export default async function handler(req, res) {
         'Authorization': `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: 'mistral.pixtral-large-2502-v1:0',
+        model: 'openai.gpt-oss-20b-1:0',
         max_tokens: maxTokens || 2048,
         stream: true,
         messages: allMessages,

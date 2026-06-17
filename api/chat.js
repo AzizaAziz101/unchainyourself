@@ -20,11 +20,11 @@ export default async function handler(req, res) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
+        'x-api-key': apiKey,
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'anthropic.claude-sonnet-4-5-20250929-v1:0',
+        model: 'anthropic.claude-sonnet-4-5-v1',
         max_tokens: maxTokens || 2048,
         stream: true,
         system: system || '',

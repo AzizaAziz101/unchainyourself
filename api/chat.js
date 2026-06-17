@@ -20,7 +20,7 @@ export default async function handler(req, res) {
     : messages;
 
   const bedrockRes = await fetch(
-    `https://bedrock-runtime.${region}.amazonaws.com/openai/v1/chat/completions`,
+    `https://bedrock-mantle.${region}.api.aws/openai/v1/chat/completions`,
     {
       method: 'POST',
       headers: {
